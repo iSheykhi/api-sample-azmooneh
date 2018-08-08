@@ -24,6 +24,7 @@ import static com.azmooneh.sample.activity.MainActivity.LANGUAGE_KEY;
 import static com.azmooneh.sample.activity.MainActivity.USER_ID;
 import static com.azmooneh.sample.activity.MainActivity.API_SERVICE;
 import static com.azmooneh.sample.activity.MainActivity.textToSpeech;
+import static com.azmooneh.sample.activity.MainActivity.ttsSupported;
 
 public class ReadActivity extends AppCompatActivity {
     private ArrayList<StructWord> dataList = new ArrayList<>();
@@ -127,10 +128,16 @@ public class ReadActivity extends AppCompatActivity {
 
 
     private void speech(String text) {
-        if (textToSpeech.isSpeaking()) {
-            textToSpeech.stop();
+        if (ttsSupported) {
+            if (textToSpeech.isSpeaking()) {
+                textToSpeech.stop();
+            }
+            textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null);
         }
-        textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null);
+        // else {
+        //     // Download the sound of the text from the server.
+        // }
+
     }
 
     private void dataSet(int pos) {

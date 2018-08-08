@@ -36,8 +36,9 @@ public class MainActivity extends AppCompatActivity {
     public static final String LANGUAGE_KEY = "en"; // en | ko | fr | tr | ar | de | ru | es | it | jp | zh
     public static final String USER_ID      = "ABCD";
     public static TextToSpeech textToSpeech;
+    public static boolean ttsSupported;
     //
-    private             int    continueStage = 1;
+    private int continueStage = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,7 +48,7 @@ public class MainActivity extends AppCompatActivity {
         // initialize AndroidNetworking
         AndroidNetworking.initialize(getApplicationContext());
         // initialize TextToSpeech
-        initTTS();
+        initTTS(LANGUAGE_KEY);
         // download stage list
         AndroidNetworking.post(API_SERVICE + "stage")
                 .addHeaders("apiKey", API_KEY)
@@ -65,12 +66,12 @@ public class MainActivity extends AppCompatActivity {
                                 return;
                             }
                             ArrayList<StructStep> listStage = new ArrayList<>();
-                            JSONArray             listStep  = response.getJSONObject("data").getJSONArray("steps");
+                            JSONArray             listStep  = response.getJSONObject("data").getJSONArray("stages");
                             for (int i = 0; i < listStep.length(); i++) {
                                 StructStep structStep = new StructStep();
                                 JSONObject objStep    = listStep.getJSONObject(i);
-                                // id | A key value to get information about each lesson. (id == stepId)
-                                structStep.id = objStep.getInt("id");
+                                // id | A key value to get information about each lesson.
+                                structStep.stageId = objStep.getInt("stageId");
                                 // title |Displays the title of each step.
                                 structStep.title = objStep.getString("title");
                                 // state | Report the status of each step. ( 0 == lock, 1 == complete, 2 == continue)
@@ -80,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
 
                                 // Find the last step of the user to continue the stages.
                                 if (structStep.state == 2) {
-                                    continueStage = structStep.id;
+                                    continueStage = structStep.stageId;
                                 }
                             }
 
@@ -93,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
                                     if (item.state > 0) {
                                         // go to CourseActivity and download the course info.
                                         Intent intent = new Intent(MainActivity.this, CourseActivity.class);
-                                        intent.putExtra("stageId", item.id);
+                                        intent.putExtra("stageId", item.stageId);
                                         MainActivity.this.startActivity(intent);
                                     } else {
                                         Toast.makeText(MainActivity.this, "this step is lock!", Toast.LENGTH_SHORT).show();
@@ -148,9 +149,9 @@ public class MainActivity extends AppCompatActivity {
                                         Toast.makeText(MainActivity.this, objReturn.getString("message"), Toast.LENGTH_SHORT).show();
                                         return;
                                     }
-                                    JSONArray             list      = response.getJSONObject("data").getJSONArray("list");
+                                    JSONArray list = response.getJSONObject("data").getJSONArray("list");
 
-                                    if (list.length() == 0){
+                                    if (list.length() == 0) {
                                         Toast.makeText(MainActivity.this, "There is nothing wrong word to remember.", Toast.LENGTH_SHORT).show();
                                         return;
                                     }
@@ -186,13 +187,49 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public void initTTS() {
+    public void initTTS(final String languageKey) {
         TextToSpeech.OnInitListener listener = new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
                 try {
                     if (status == TextToSpeech.SUCCESS) {
-                        int result = textToSpeech.setLanguage(Locale.UK);
+                        int result = 0;
+                        switch (languageKey) {
+                            case "en":
+                                result = textToSpeech.setLanguage(Locale.UK);
+                                break;
+                            case "fr":
+                                result = textToSpeech.setLanguage(Locale.FRENCH);
+                                break;
+                            case "de":
+                                result = textToSpeech.setLanguage(Locale.GERMANY);
+                                break;
+                            case "it":
+                                result = textToSpeech.setLanguage(Locale.ITALIAN);
+                                break;
+                            case "ru":
+                                result = textToSpeech.setLanguage(new Locale("ru_RU"));
+                                break;
+                            case "es":
+                                result = textToSpeech.setLanguage(new Locale("es_ES"));
+                                break;
+                            case "jp":
+                                result = textToSpeech.setLanguage(Locale.JAPANESE);
+                                break;
+                            case "ko":
+                                result = textToSpeech.setLanguage(Locale.KOREAN);
+                                break;
+                            case "zh":
+                                result = textToSpeech.setLanguage(Locale.CHINA);
+                                break;
+                            case "ar":
+                                result = textToSpeech.setLanguage(new Locale("ar"));
+                                break;
+                            case "tr":
+                                result = textToSpeech.setLanguage(new Locale("tr_TR"));
+                                break;
+                        }
+
                         switch (result) {
                             case LANG_MISSING_DATA:
                                 Log.e("tag", "TextToSpeech -> lang missing data (" + LANG_MISSING_DATA + ")");
@@ -202,6 +239,7 @@ public class MainActivity extends AppCompatActivity {
                                 break;
                             default:
                                 Log.e("tag", "TextToSpeech -> supported (" + result + ")");
+                                ttsSupported = true;
                                 break;
                         }
                     } else {

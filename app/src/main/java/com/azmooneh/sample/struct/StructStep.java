@@ -4,7 +4,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 public class StructStep implements Parcelable {
-    public int id;
+    public int stageId;
     public String title;
     public int state;
 
@@ -15,7 +15,7 @@ public class StructStep implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeInt(this.id);
+        dest.writeInt(this.stageId);
         dest.writeString(this.title);
         dest.writeInt(this.state);
     }
@@ -24,7 +24,7 @@ public class StructStep implements Parcelable {
     }
 
     protected StructStep(Parcel in) {
-        this.id = in.readInt();
+        this.stageId = in.readInt();
         this.title = in.readString();
         this.state = in.readInt();
     }
